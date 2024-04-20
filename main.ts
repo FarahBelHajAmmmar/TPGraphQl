@@ -9,7 +9,6 @@ import {Mutation} from './src/resolvers/Mutation'
 import { Subscription } from './src/resolvers/Subscription';
 
 
-const pubSub = createPubSub() ; 
 
 interface YogaContext {
   db: typeof db;
@@ -19,15 +18,16 @@ const resolvers = {
   Query,Cv,Mutation,Subscription
 };
 
+const pubsub = createPubSub() ; 
 const context: YogaContext = {
-  db
+  db 
 };
 const yoga = createYoga<YogaContext>({
   schema: createSchema<YogaContext>({
     typeDefs: fs.readFileSync(path.join(__dirname, "src/schema/schema.graphql"), "utf-8"),
     resolvers
   }),
-  context : pubSub
+  context : {pubsub , db}
 });
 
 
