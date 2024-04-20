@@ -53,6 +53,7 @@ input updateCv{
 type Mutation {
    addCv(inputDataCv :InputDataCv):Cv!
    updateCv(id: Int! , updatecv: updateCv): Cv
+   DeleteCv(id : Int!) : Cv 
 }
 
 type Subscription {
