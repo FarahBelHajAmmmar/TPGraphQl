@@ -1,4 +1,7 @@
 import { GraphQLError } from "graphql";
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 export const Mutation = {
 
@@ -26,9 +29,15 @@ export const Mutation = {
             user,
             skills
         };
-
+        const cvr = prisma.cv.create({
+            data: {
+              name: 'Alice',
+              job: 'alice@prisma.io',
+            },
+          })
         db.cvs.push(cv);
-      pubsub.publish("NewCv" , cv) ; 
+      pubsub.publish("NewCv" , cv) ;
+        
         return cv;
     }
     
