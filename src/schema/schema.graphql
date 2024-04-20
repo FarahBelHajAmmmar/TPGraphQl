@@ -55,3 +55,6 @@ type Mutation {
    updateCv(id: Int! , updatecv: updateCv): Cv
 }
 
+type Subscription {
+    Cv : Cv!
+}

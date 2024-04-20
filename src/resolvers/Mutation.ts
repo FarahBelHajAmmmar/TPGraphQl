@@ -2,7 +2,7 @@ import { GraphQLError } from "graphql";
 
 export const Mutation = {
 
-    addCv: (_, { inputDataCv }, { db }) => {
+    addCv: (_, { inputDataCv }, { db } ) => {
         const { name, age, job, user, skills } = inputDataCv;
 
         // Vérifie d'abord si l'utilisateur existe déjà
@@ -11,14 +11,15 @@ export const Mutation = {
             throw new GraphQLError(`L'utilisateur d'identifiant ${user} n'existe pas.`);
         }
         // verifie si tous les skills existent
-        const skillsDB = db.skills.filter((skill) => skills.includes(skill.id));
-        if (skillsDB.length !== skills.length){
-            throw new GraphQLError("il ya des skills qui n'existant pas dans la base")
+        if (skills !== undefined){
+            const skillsDB = db.skills.filter((skill) => skills.includes(skill.id));
+            if (skillsDB.length !== skills.length){
+                throw new GraphQLError("il ya des skills qui n'existant pas dans la base") ; 
+            }
         }
-        //console.log(skillsDB);
 
         const cv = {
-            id: db.cvs.length > 0 ? db.cvs[db.cvs.length - 1].id + 1 : 1,
+            id: db.cvs.length + 1 ,
             name,
             age,
             job,
@@ -65,15 +66,17 @@ updateCv:(parent,{id,updateCv},{db})=>{
   
       }
       return cv ;
-
-
-
-
-
-
-
-
-
-
-}
+    }
+    ,
+    DeleteCv: (_, { id }, { db } , info) => {
+        if (id === undefined){
+            throw new GraphQLError(`L'cv d'identifiant ${id} n'existe pas.`);
+        }
+        const index = db.cvs.findIndex((i) => i.id == id)
+        if (index === -1){
+            throw new GraphQLError(`L'cv d'identifiant ${id} n'existe pas.`);
+        }
+        const [cv] = db.cvs.splice(index , 1 ) ;  
+        return cv ; 
+    }
 }
