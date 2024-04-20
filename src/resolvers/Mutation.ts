@@ -2,7 +2,7 @@ import { GraphQLError } from "graphql";
 
 export const Mutation = {
 
-    addCv: (_, { inputDataCv }, { db } ) => {
+    addCv: (_, { inputDataCv }, { db,pubsub} ) => {
         const { name, age, job, user, skills } = inputDataCv;
 
         // Vérifie d'abord si l'utilisateur existe déjà
@@ -28,20 +28,15 @@ export const Mutation = {
         };
 
         db.cvs.push(cv);
-
+      pubsub.publish("NewCv" , cv) ; 
         return cv;
     }
     
 ,
-updateCv:(parent,{id,updateCv},{db})=>{
-
-    console.log(updateCv);
+updateCv:(parent,{id,updateCv , pubsub},{db})=>{
+    console.log(updateCv) ; 
     const {user ,skillsid,...userdata} = updateCv;
-    console.log('uSERData,',userdata);
 
-
-    console.log('uSER,',user);
-    console.log('Skill',skillsid);
      // Vérifie d'abord si le cv  existe déjà
      const CvIndex = db.cvs.findIndex((CvDB) => CvDB.id === id);
      if (CvIndex==-1) {
@@ -65,10 +60,12 @@ updateCv:(parent,{id,updateCv},{db})=>{
           cv[key] = updateCv[key];
   
       }
+      pubsub.publish("NewCv" , cv) ; 
+
       return cv ;
     }
     ,
-    DeleteCv: (_, { id }, { db } , info) => {
+    DeleteCv: (_, { id }, { db , pubsub} , info) => {
         if (id === undefined){
             throw new GraphQLError(`L'cv d'identifiant ${id} n'existe pas.`);
         }
@@ -77,6 +74,8 @@ updateCv:(parent,{id,updateCv},{db})=>{
             throw new GraphQLError(`L'cv d'identifiant ${id} n'existe pas.`);
         }
         const [cv] = db.cvs.splice(index , 1 ) ;  
+        pubsub.publish("NewCv" , cv) ; 
         return cv ; 
     }
+
 }

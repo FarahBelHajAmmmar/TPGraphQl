@@ -4,7 +4,7 @@ export const Query =
     
     {
         getAllcvs: (_, __, { db }) => {
-    
+            console.log(db) ; 
             return db.cvs;
         },
         getCvById: (_, { id }, { db }) => {
