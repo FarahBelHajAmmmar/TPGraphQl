@@ -1,31 +1,35 @@
 import { createServer } from 'node:http';
-import { createSchema, createYoga } from 'graphql-yoga';
+import { createPubSub, createSchema, createYoga } from 'graphql-yoga'
 import { Query } from './src/resolvers/Query';
 import path from 'path';
 import fs from "fs";
 import { db } from './src/db/db';
 import { Cv } from './src/resolvers/Cv';
 import {Mutation} from './src/resolvers/Mutation'
+import { Subscription } from './src/resolvers/Subscription';
+
+
+const pubSub = createPubSub() ; 
 
 interface YogaContext {
   db: typeof db;
 }
 
 const resolvers = {
-  Query,Cv,Mutation
+  Query,Cv,Mutation,Subscription
 };
 
 const context: YogaContext = {
   db
 };
-
 const yoga = createYoga<YogaContext>({
   schema: createSchema<YogaContext>({
     typeDefs: fs.readFileSync(path.join(__dirname, "src/schema/schema.graphql"), "utf-8"),
     resolvers
   }),
-  context
+  context : pubSub
 });
+
 
 const server = createServer(yoga);
 
