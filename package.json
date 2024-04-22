@@ -8,6 +8,7 @@
     "graphql-yoga": "5.3.0",
     "mysql": "^2.18.1",
     "nodemon": "^3.1.0",
+    "run": "^1.5.0",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.4.5"

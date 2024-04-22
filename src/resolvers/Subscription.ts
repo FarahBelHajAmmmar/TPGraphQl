@@ -1,12 +1,3 @@
-// export const Subscription = {
-//     Cv : {
-//         subscribe(parent , args , {pubsub} , info ) {
-//             subscribe: () => return pubsub.subscribe('Cv')  ; 
-//             resolve: payload => payload
-//             return pubsub.as
-//         }
-//     }
-// }
 export const Subscription = {
     NewCv: {
         subscribe: (parent, args, { pubsub }, info) => {
@@ -14,4 +5,16 @@ export const Subscription = {
         },
         resolve: (payload) => payload,
     },
+    DelCv: {
+        subscribe: (parent, args, { pubsub }, info) => {
+            return pubsub.subscribe('DelCv');
+        },
+        resolve: (payload) => payload,
+    } ,
+    UpdCv: {
+        subscribe: (parent, args, { pubsub }, info) => {
+            return pubsub.subscribe('UpdCv');
+        },
+        resolve: (payload) => payload,
+    }
 };

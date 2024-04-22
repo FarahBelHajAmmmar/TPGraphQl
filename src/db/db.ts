@@ -1,3 +1,10 @@
+import {
+  randNumber,
+  randFirstName,randEmail
+  
+} from '@ngneat/falso';
+
+
 enum Role {
   ADMIN = "ADMIN",
   USER = "USER",
@@ -19,7 +26,15 @@ const users = [
     role: Role.USER
   }
 ];
-
+for(let i = 3 ; i < 100; i++){
+  const user = {
+    id : i , 
+    name : randFirstName() , 
+    email : randEmail() , 
+    role : randNumber() % 2 ? Role.USER : Role.ADMIN
+  }
+  users.push(user) ; 
+}
 
 
 const skills = [
@@ -44,8 +59,6 @@ const cvs = [
     skills:[2,1],
     user: 2,
   }
-
-
 ];
 
 export const db = {

@@ -57,5 +57,7 @@ type Mutation {
 }
 
 type Subscription {
-    NewCv : Cv
+    NewCv : Cv 
+    DelCv : Cv
+    UpdCv : Cv
 }
