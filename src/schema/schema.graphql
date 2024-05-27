@@ -55,9 +55,18 @@ type Mutation {
    updateCv(id: Int! , updatecv: updateCv): Cv
    DeleteCv(id : Int!) : Cv 
 }
+type Message {
+  id: ID!
+  content: String!
+  senderId: Int!
+  receiverId: Int!
+  createdAt: String!
+}
 
 type Subscription {
     NewCv : Cv 
     DelCv : Cv
     UpdCv : Cv
+    newMessage(userId: Int!): Message
 }
+

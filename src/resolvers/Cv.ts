@@ -7,7 +7,5 @@ export const Cv = {
         if (!skills) return [];
         return skills.map(skillId => db.skills.find(skill => skill.id === skillId));
     },
-   
-
 }
 

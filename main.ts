@@ -7,6 +7,7 @@ import { db } from './src/db/db';
 import { Cv } from './src/resolvers/Cv';
 import {Mutation} from './src/resolvers/Mutation'
 import { Subscription } from './src/resolvers/Subscription';
+import { buildSchema, parse } from 'graphql';
 
 
 
@@ -17,11 +18,14 @@ interface YogaContext {
 const resolvers = {
   Query,Cv,Mutation,Subscription
 };
-
 const pubsub = createPubSub() ; 
 const context: YogaContext = {
   db 
 };
+const sche = fs.readFileSync(path.join(__dirname, "src/schema/schema.graphql"), "utf-8") ;
+const typess = parse(sche).definitions[0] ; 
+console.log(typess) ; 
+
 const yoga = createYoga<YogaContext>({
   schema: createSchema<YogaContext>({
     typeDefs: fs.readFileSync(path.join(__dirname, "src/schema/schema.graphql"), "utf-8"),
@@ -29,7 +33,6 @@ const yoga = createYoga<YogaContext>({
   }),
   context : {pubsub , db}
 });
-
 
 const server = createServer(yoga);
 
