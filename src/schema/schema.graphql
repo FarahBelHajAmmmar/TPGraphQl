@@ -40,7 +40,7 @@ input InputDataCv{
     user : Int!
     skills : [Int]
 }
-input updateCv{
+input InputUpdateCv{
     name : String
     age  : Int
     job : String
@@ -52,7 +52,7 @@ input updateCv{
 
 type Mutation {
    addCv(inputDataCv :InputDataCv):Cv!
-   updateCv(id: Int! , updatecv: updateCv): Cv
+   updateCv(id: Int! , updatecv: InputUpdateCv): Cv
    DeleteCv(id : Int!) : Cv 
 }
 

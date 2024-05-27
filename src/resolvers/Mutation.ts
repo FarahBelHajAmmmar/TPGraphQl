@@ -1,90 +1,97 @@
-import { GraphQLError } from "graphql";
+import { GraphQLError, printSchema } from "graphql";
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
 export const Mutation = {
 
-    addCv: (_, { inputDataCv }, { db,pubsub} ) => {
+    addCv: async (_, { inputDataCv }, { db,pubsub} ) => {
+        console.log(inputDataCv);
         const { name, age, job, user, skills } = inputDataCv;
 
-        // Vérifie d'abord si l'utilisateur existe déjà
-        const userDB = db.users.find((userDB) => userDB.id === user);
+        const userDB = await prisma.user.findUnique({ where: { id: user } });
         if (!userDB) {
             throw new GraphQLError(`L'utilisateur d'identifiant ${user} n'existe pas.`);
         }
-        // verifie si tous les skills existent
-        if (skills !== undefined){
-            const skillsDB = db.skills.filter((skill) => skills.includes(skill.id));
-            if (skillsDB.length !== skills.length){
-                throw new GraphQLError("il ya des skills qui n'existant pas dans la base") ; 
+
+        // Verify if all skills exist
+        if (skills !== undefined) {
+            const skillsDB = await prisma.skill.findMany({ where: { id: { in: skills } } });
+            if (skillsDB.length !== skills.length) {
+                throw new GraphQLError("Il y a des skills qui n'existent pas dans la base");
             }
         }
-
-        const cv = {
-            id: db.cvs.length + 1 ,
-            name,
-            age,
-            job,
-            user,
-            skills
-        };
         const cvr = prisma.cv.create({
             data: {
-              name: 'Alice',
-              job: 'alice@prisma.io',
+                name: name,
+                age: age,
+                job: job,
+                user: { connect: { id: userDB.id } }
             },
-          })
-        db.cvs.push(cv);
-      pubsub.publish("NewCv" , cv) ;
+            include: { user: true, skills: true }
+        })
+        db.cvs.push(cvr);
+      pubsub.publish("NewCv" , cvr) ;
         
-        return cv;
-    }
-    
-,
-updateCv:(parent,{id,updateCv , pubsub},{db})=>{
-    console.log(updateCv) ; 
-    const {user ,skillsid,...userdata} = updateCv;
-
-     // Vérifie d'abord si le cv  existe déjà
-     const CvIndex = db.cvs.findIndex((CvDB) => CvDB.id === id);
-     if (CvIndex==-1) {
-         throw new GraphQLError(`Le cv d'identifiant ${CvIndex} n'existe pas.`);
-     } 
-     // Vérifie d'abord si l'utilisateur existe déjà
-     const userDB = db.users.find((userDB) => userDB.id === user);
-     if (!userDB) {
-         throw new GraphQLError(`L'utilisateur d'identifiant ${user} n'existe pas.`);
-     }
-      // verifie si tous les skills existent
-      const skillsDB = db.skills.filter((skill) => skillsid.includes(skill.id));
-      if (skillsDB.length !== skillsid.length){
-          throw new GraphQLError("il ya des skills qui n'existant pas dans la base")
-      }
-
-      let cv=db.cvs[CvIndex];
-      cv.skills=skillsid;
-      for(let key in updateCv){
-        if( key != skillsid )
-          cv[key] = updateCv[key];
-  
-      }
-      pubsub.publish("NewCv" , cv) ; 
-
-      return cv ;
+        return cvr;
     }
     ,
-    DeleteCv: (_, { id }, { db , pubsub} , info) => {
-        if (id === undefined){
-            throw new GraphQLError(`L'cv d'identifiant ${id} n'existe pas.`);
+updateCv:async (_,{id , updatecv},{pubsub})=>{
+
+    const { user, skillsid, ...userdata } = updatecv;
+
+    // Verify if the CV exists
+    const cvuser = await prisma.cv.findUnique({ where: { id } });
+    if (!cvuser) {
+        throw new GraphQLError(`Le cv d'identifiant ${id} n'existe pas.`);
+    }
+
+    // Verify if the user exists
+    const userDB = await prisma.user.findUnique({ where: { id: user } });
+    if (!userDB) {
+        throw new GraphQLError(`L'utilisateur d'identifiant ${user} n'existe pas.`);
+    }
+
+    if (skillsid === undefined) {
+        throw new GraphQLError("skillsid is undefined");
+    }
+
+    const skillsDB = await prisma.skill.findMany({ where: { id: { in: skillsid } } });
+
+    if (skillsDB.length !== skillsid.length) {
+        throw new GraphQLError("Il y a des skills qui n'existent pas dans la base");
+    }
+
+    const updatedCv = await prisma.cv.update({
+        where: { id },
+        data: {
+            ...userdata,
+            user: { connect: { id: user } },
+            skills: { set: skillsid.map(skillId => ({ id: skillId })) }
+        },
+        include: { user: true, skills: true }
+    });
+    pubsub.publish("NewCv", updatedCv);
+
+    return updatedCv;
+    }
+    ,
+    DeleteCv: async (_, { id } , {pubsub}) => {
+         const cv = await prisma.cv.findUnique({ where: { id } });
+        if (!cv) {
+            throw new GraphQLError(`Le CV d'identifiant ${id} n'existe pas.`);
         }
-        const index = db.cvs.findIndex((i) => i.id == id)
-        if (index === -1){
-            throw new GraphQLError(`L'cv d'identifiant ${id} n'existe pas.`);
-        }
-        const [cv] = db.cvs.splice(index , 1 ) ;  
-        pubsub.publish("NewCv" , cv) ; 
-        return cv ; 
+
+        // Delete the CV
+        const deletedCv = await prisma.cv.delete({
+            where: { id }
+        });
+        console.log(deletedCv) ; 
+
+        // Publish the delete CV event
+        pubsub.publish("NewCv", deletedCv);
+
+        return deletedCv;
     }
 
 }
